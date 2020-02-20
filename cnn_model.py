@@ -30,41 +30,7 @@ def se_block(input, channels, r=8):
 
 # cnnのモデルを定義する
 
-def def_model(in_shape, nb_classes):
-    model = Sequential()
-    model.add(Conv2D(filters=32,
-                     kernel_size=(3, 3),
-                     strides=(1, 1),
-                     activation="relu",
-                     input_shape=in_shape))
-    model.add(Conv2D(filters=32,
-                     kernel_size=(3, 3),
-                     strides=(1, 1),
-                     activation="relu"))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-    model.add(Conv2D(filters=64,
-                     kernel_size=(3, 3),
-                     strides=(1, 1),
-                     activation="relu"))
-    model.add(Conv2D(filters=64,
-                     kernel_size=(3, 3),
-                     strides=(1, 1),
-                     activation="relu",
-                     name="relu_conv2")
-              )
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-
-    model.add(Flatten())
-    model.add(Dense(512, activation="relu"))
-    model.add(Dropout(0.5))
-    model.add(Dense(units=nb_classes, activation="softmax"))
-
-    return model
-
-# vgg16を利用するモデル
-
+# model using vgg16
 
 def build_transfer_model(vgg16, nb_classes):
     model = Sequential(vgg16.layers)
@@ -76,7 +42,7 @@ def build_transfer_model(vgg16, nb_classes):
     model.add(Dense(units=nb_classes, activation='softmax'))
     return model
 
-#Resnet50を使用するモデル
+# model using Resnet50
 
 def build_transfer_model2(resnet50, nb_classes):
     x = resnet50.output
@@ -86,23 +52,7 @@ def build_transfer_model2(resnet50, nb_classes):
     model = Model(input=resnet50.input, outputs=predictions)
     return model
 
-def build_transfer_model3(resnet50, nb_classes):
-    x = resnet50.layers[0].input
-    for i, layer in enumerate(resnet50.layers):
-#        print(layer.name)
-        if i == 0: continue
-        x = layer(x)
-        if ("res" in layer.name) and ("branch2" in layer.name):
-            print("add " + layer.name) 
-#            x = se_block(x, layer.filters)
-#        elif (layer.name == "conv1"):
-            x = se_block(x, layer.filters)
-#        else:
-#            x = layer(x)
-    x = GlobalAveragePooling2D()(x)
-    x = Dense(nb_classes, activation="softmax")(x)
-    model = Model(resnet50.input, x)
-    return model
+#model using vgg16 and Squeeze&Excitaion net
 
 def build_transfer_model4(vgg16, nb_classes):
     x = vgg16.layers[0].input
@@ -134,16 +84,7 @@ def build_transfer_model5(resnet50, nb_classes):
     model = Model(resnet50.input, x)
     return model
 
-# コンパイル済みのcnnのモデルを返す
-
-
-def get_model(in_shape, nb_classes):
-    model = def_model(in_shape, nb_classes)
-    model.compile(
-        loss="categorical_crossentropy",
-        optimizer=RMSprop(),
-        metrics=["accuracy"])
-    return model
+# return compiled cnn model
 
 
 def get_model2(in_shape, nb_classes):
@@ -182,11 +123,3 @@ def get_model5(in_shape, nb_classes):
         metrics=['accuracy']
     )
     return model
-
-
-
-
-ResNet50_2().summary()
-#build_transfer_model3(resnet50, 10).summary()
-#vgg16.summary()
-#build_transfer_model4(vgg16, 10).summary()
