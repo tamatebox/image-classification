@@ -20,10 +20,11 @@ vgg16_2 = VGG16(include_top=False, weights='imagenet',
 
 #Squeeze and  Excitation
 
+
 def se_block(input, channels, r=8):
-    #Squeeze
+    # Squeeze
     x = GlobalAveragePooling2D()(input)
-    #Excitation
+    # Excitation
     x = Dense(channels//r, activation="relu")(x)
     x = Dense(channels, activation="sigmoid")(x)
     return Multiply()([input, x])
@@ -31,6 +32,7 @@ def se_block(input, channels, r=8):
 # cnnのモデルを定義する
 
 # model using vgg16
+
 
 def build_transfer_model(vgg16, nb_classes):
     model = Sequential(vgg16.layers)
@@ -44,6 +46,7 @@ def build_transfer_model(vgg16, nb_classes):
 
 # model using Resnet50
 
+
 def build_transfer_model2(resnet50, nb_classes):
     x = resnet50.output
     x = GlobalAveragePooling2D()(x)
@@ -52,12 +55,14 @@ def build_transfer_model2(resnet50, nb_classes):
     model = Model(input=resnet50.input, outputs=predictions)
     return model
 
-#model using vgg16 and Squeeze&Excitaion net
+# model using vgg16 and Squeeze&Excitaion net
+
 
 def build_transfer_model4(vgg16, nb_classes):
     x = vgg16.layers[0].input
     for i, layer in enumerate(vgg16.layers):
-        if i == 0: continue
+        if i == 0:
+            continue
         if "conv" in layer.name:
             x = layer(x)
             x = se_block(x, layer.filters)
@@ -68,16 +73,18 @@ def build_transfer_model4(vgg16, nb_classes):
     model = Model(vgg16.input, x)
     return model
 
+
 def build_transfer_model5(resnet50, nb_classes):
     x = resnet50
     for i, layer in enumerate(x.layers):
         print(layer.name)
-        if i == 0: continue
+        if i == 0:
+            continue
         if ("res" in layer.name):
-             se_block(layer, layer.filters)
+            se_block(layer, layer.filters)
 #            x = se_block(x, layer.filters)
         elif (layer.name == "conv1"):
-             se_block(layer, layer.filters)
+            se_block(layer, layer.filters)
     x = x.output
     x = GlobalAveragePooling2D()(x)
     x = Dense(nb_classes, activation="softmax")(x)
@@ -106,6 +113,7 @@ def get_model3(in_shape, nb_classes):
     )
     return model
 
+
 def get_model4(in_shape, nb_classes):
     model = build_transfer_model4(vgg16, nb_classes)
     model.compile(
@@ -115,9 +123,10 @@ def get_model4(in_shape, nb_classes):
     )
     return model
 
+
 def get_model5(in_shape, nb_classes):
     model = ResNet50_2(in_shape, nb_classes)
-     model.compile(
+    model.compile(
         loss='categorical_crossentropy',
         optimizer=SGD(lr=1e-4, momentum=0.9),
         metrics=['accuracy']

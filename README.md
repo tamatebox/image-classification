@@ -18,5 +18,6 @@ Directory structure
 │   ├── label b
 │   └── 
 ├── cnn_model.py
+├── models
 ├── resnet50.py
 └── valid.py
